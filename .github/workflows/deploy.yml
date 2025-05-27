@@ -31,7 +31,16 @@ jobs:
         run: |
           ./mvnw clean package -DskipTests
 
-      - name: Deploy to S3
-        run: |
-          aws s3 sync ./target s3://demo-bucket-2024-05-24 --delete
+      - name: Deploy to Elastic Beanstalk
+        uses: einaregilsson/beanstalk-deploy@v21
+        with:
+          aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          application_name: demo
+          environment_name: demo-env
+          version_label: ${{ github.sha }}
+          region: eu-north-1
+          deployment_package: target/demo-0.0.1-SNAPSHOT.jar
+          use_existing_version_if_available: true
+          wait_for_deployment: true
 
