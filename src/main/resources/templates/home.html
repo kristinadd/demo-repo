@@ -1,276 +1,288 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>Home Page</title>
+    <title>Wick Bank - Modern Banking</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
+        :root {
+            --pink: #ff018f;
+            --yellow: #ffcc00;
+            --purple: #2a0c62;
+            --dark: #11012e;
+        }
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             line-height: 1.6;
-            color: #fff;
-            background-color: #000;
+            color: var(--yellow);
+            background: linear-gradient(135deg, var(--dark) 0%, var(--purple) 100%);
+            min-height: 100vh;
         }
-
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
         header {
-            background: linear-gradient(135deg, #2d1b4d 0%, #1a1a1a 100%);
-            color: white;
-            padding: 2rem;
-            text-align: center;
-            box-shadow: 0 2px 15px rgba(147, 112, 219, 0.3);
-            position: relative;
-            overflow: hidden;
+            padding: 2rem 0 1rem 0;
         }
-
-        header::before {
-            content: '';
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .bank-logo {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--pink);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            letter-spacing: 2px;
+        }
+        .bank-logo i {
+            color: var(--yellow);
+        }
+        .auth-buttons {
+            display: flex;
+            gap: 1rem;
+        }
+        .btn {
+            padding: 0.8rem 2rem;
+            border-radius: 50px;
+            font-weight: 700;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+            border: none;
+            letter-spacing: 1px;
+        }
+        .btn-login {
+            background: transparent;
+            color: var(--yellow);
+            border: 2px solid var(--yellow);
+        }
+        .btn-login:hover {
+            background: var(--yellow);
+            color: var(--purple);
+        }
+        .btn-signup {
+            background: var(--pink);
+            color: white;
+        }
+        .btn-signup:hover {
+            background: var(--yellow);
+            color: var(--purple);
+        }
+        .hero {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 4rem 0 2rem 0;
+            gap: 4rem;
+        }
+        .hero-content {
+            flex: 1;
+        }
+        .hero-title {
+            font-size: 3.5rem;
+            font-weight: 900;
+            margin-bottom: 1.5rem;
+            line-height: 1.1;
+            color: var(--yellow);
+            text-shadow: 0 2px 20px var(--purple);
+        }
+        .hero-subtitle {
+            font-size: 1.3rem;
+            color: var(--pink);
+            margin-bottom: 2rem;
+            font-weight: 500;
+        }
+        .hero-image {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            perspective: 1200px;
+        }
+        .card-flip-container {
+            width: 320px;
+            height: 200px;
+            perspective: 1200px;
+            position: relative;
+        }
+        .card-flip {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            transition: transform 0.8s cubic-bezier(.68,-0.55,.27,1.55);
+            transform-style: preserve-3d;
+        }
+        .card-flip-container:hover .card-flip,
+        .card-flip-container:focus .card-flip {
+            transform: rotateY(180deg);
+        }
+        .card-face {
+            width: 100%;
+            height: 100%;
             position: absolute;
             top: 0;
             left: 0;
-            right: 0;
-            bottom: 0;
-            background: radial-gradient(circle at 50% 50%, rgba(147, 112, 219, 0.1) 0%, transparent 70%);
-            pointer-events: none;
+            backface-visibility: hidden;
+            border-radius: 24px;
+            box-shadow: 0 8px 40px var(--pink), 0 2px 20px var(--yellow);
         }
-
-        nav {
-            background-color: rgba(26, 26, 26, 0.95);
-            padding: 1rem;
-            text-align: center;
-            border-bottom: 2px solid #9370db;
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-            backdrop-filter: blur(10px);
+        .card-face.front {
+            z-index: 2;
         }
-
-        nav a {
-            color: #fff;
-            text-decoration: none;
-            margin: 0 1rem;
-            padding: 0.5rem 1rem;
-            border-radius: 20px;
-            transition: all 0.3s;
-            border: 1px solid transparent;
-            position: relative;
-            overflow: hidden;
+        .card-face.back {
+            transform: rotateY(180deg);
+            z-index: 1;
         }
-
-        nav a:hover {
-            background-color: #9370db;
-            color: #000;
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(147, 112, 219, 0.4);
-        }
-
-        nav a::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 50%;
-            width: 0;
-            height: 2px;
-            background: #9370db;
-            transition: all 0.3s;
-            transform: translateX(-50%);
-        }
-
-        nav a:hover::after {
-            width: 80%;
-        }
-
-        main {
-            max-width: 1200px;
-            margin: 2rem auto;
-            padding: 0 1rem;
-        }
-
-        .hero {
-            background: linear-gradient(135deg, #2d1b4d 0%, #1a1a1a 100%);
-            padding: 3rem;
-            border-radius: 20px;
-            box-shadow: 0 2px 15px rgba(147, 112, 219, 0.3);
-            margin-bottom: 2rem;
-            border: 1px solid #9370db;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .hero::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(circle at center, rgba(147, 112, 219, 0.1) 0%, transparent 70%);
-            animation: rotate 20s linear infinite;
-        }
-
-        @keyframes rotate {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
-
         .features {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
             gap: 2rem;
-            margin-top: 2rem;
+            margin-top: 4rem;
+            margin-bottom: 7rem;
         }
-
         .feature-card {
-            background: linear-gradient(135deg, #2d1b4d 0%, #1a1a1a 100%);
+            background: rgba(255,255,255,0.05);
             padding: 2rem;
             border-radius: 20px;
-            box-shadow: 0 2px 15px rgba(147, 112, 219, 0.3);
-            border: 1px solid #9370db;
-            transition: all 0.3s;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .feature-card:hover {
-            transform: translateY(-5px) scale(1.02);
-            box-shadow: 0 5px 20px rgba(147, 112, 219, 0.5);
-        }
-
-        .feature-card i {
-            font-size: 2rem;
-            color: #9370db;
-            margin-bottom: 1rem;
-        }
-
-        .floating-btn {
-            position: fixed;
-            bottom: 2rem;
-            right: 2rem;
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            background: #9370db;
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-decoration: none;
-            box-shadow: 0 2px 15px rgba(147, 112, 219, 0.4);
-            transition: all 0.3s;
-            z-index: 1000;
-        }
-
-        .floating-btn:hover {
-            transform: scale(1.1);
-            box-shadow: 0 5px 20px rgba(147, 112, 219, 0.6);
-        }
-
-        footer {
-            background: linear-gradient(135deg, #2d1b4d 0%, #1a1a1a 100%);
-            color: white;
             text-align: center;
-            padding: 1rem;
-            position: fixed;
-            bottom: 0;
-            width: 100%;
-            border-top: 2px solid #9370db;
+            transition: all 0.3s ease;
+            border: 2px solid var(--purple);
+            box-shadow: 0 2px 20px rgba(255,1,143,0.08);
         }
-
-        h1 {
+        .feature-card:hover {
+            transform: translateY(-10px) scale(1.03);
+            background: var(--purple);
+            border-color: var(--pink);
+        }
+        .feature-card i {
             font-size: 2.5rem;
+            color: var(--yellow);
             margin-bottom: 1rem;
-            color: #9370db;
-            text-shadow: 0 0 10px rgba(147, 112, 219, 0.5);
         }
-
-        h2 {
-            color: #9370db;
+        .feature-card h3 {
             margin-bottom: 1rem;
-            text-shadow: 0 0 10px rgba(147, 112, 219, 0.5);
+            color: var(--pink);
+            font-weight: 800;
         }
-
-        p {
-            margin-bottom: 1rem;
-            color: #fff;
+        .feature-card p {
+            color: var(--yellow);
+            font-weight: 500;
         }
-
-        .highlight {
-            color: #9370db;
-            font-weight: bold;
-        }
-
-        .social-links {
-            margin-top: 1rem;
-        }
-
-        .social-links a {
-            color: #9370db;
-            margin: 0 0.5rem;
-            font-size: 1.5rem;
-            transition: all 0.3s;
-        }
-
-        .social-links a:hover {
-            color: #fff;
-            transform: translateY(-3px);
+        @media (max-width: 768px) {
+            .hero {
+                flex-direction: column;
+                text-align: center;
+            }
+            .hero-title {
+                font-size: 2.2rem;
+            }
+            .bank-logo {
+                font-size: 2rem;
+            }
         }
     </style>
 </head>
 <body>
     <header>
-        <h1>Welcome to Our Website</h1>
-        <p>Your <span class="highlight">trusted partner</span> in innovation</p>
+        <div class="container">
+            <div class="header-content">
+                <a href="/" class="bank-logo">
+                    <i class="fas fa-fire-flame-curved" style="background: linear-gradient(135deg, #ffcc00 0%, #ff018f 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 2.7rem;"></i>
+                    Wick
+                </a>
+                <div class="auth-buttons">
+                    <a href="#" class="btn btn-login">Log In</a>
+                    <a href="#" class="btn btn-signup">Create Account</a>
+                </div>
+            </div>
+        </div>
     </header>
-
-    <nav>
-        <a href="#home"><i class="fas fa-home"></i> Home</a>
-        <a href="#about"><i class="fas fa-info-circle"></i> About</a>
-        <a href="#services"><i class="fas fa-cogs"></i> Services</a>
-        <a href="#contact"><i class="fas fa-envelope"></i> Contact</a>
-    </nav>
-    
     <main>
-        <section class="hero">
-            <h2>Welcome to Our Platform</h2>
-            <p>We're dedicated to providing the <span class="highlight">best service</span> and solutions for our clients. Our team of experts is here to help you achieve your goals.</p>
-        </section>
-
-        <section class="features">
-            <div class="feature-card">
-                <i class="fas fa-lightbulb"></i>
-                <h2>Innovation</h2>
-                <p>We stay ahead of the curve with <span class="highlight">cutting-edge technology</span> and innovative solutions.</p>
-            </div>
-            <div class="feature-card">
-                <i class="fas fa-award"></i>
-                <h2>Quality</h2>
-                <p>Our commitment to <span class="highlight">quality</span> ensures that you receive the best possible service.</p>
-            </div>
-            <div class="feature-card">
-                <i class="fas fa-headset"></i>
-                <h2>Support</h2>
-                <p><span class="highlight">24/7 support</span> to help you with any questions or concerns you may have.</p>
-            </div>
-        </section>
+        <div class="container">
+            <section class="hero">
+                <div class="hero-content">
+                    <h1 class="hero-title">Banking Made Beautiful</h1>
+                    <p class="hero-subtitle">Experience the future of banking with Wick. Simple, secure, and designed for you.</p>
+                    <div class="auth-buttons">
+                        <a href="#" class="btn btn-signup">Get Started</a>
+                    </div>
+                </div>
+                <div class="hero-image">
+                    <div class="card-flip-container" tabindex="0">
+                        <div class="card-flip">
+                            <!-- Front of the card: Only Wick name -->
+                            <svg class="card-face front" viewBox="0 0 320 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <defs>
+                                    <linearGradient id="cardFrontBg" x1="0" y1="0" x2="320" y2="200" gradientUnits="userSpaceOnUse">
+                                        <stop offset="0%" stop-color="#ff018f"/>
+                                        <stop offset="50%" stop-color="#ffcc00"/>
+                                        <stop offset="100%" stop-color="#2a0c62"/>
+                                    </linearGradient>
+                                </defs>
+                                <rect x="0" y="0" width="320" height="200" rx="24" fill="url(#cardFrontBg)"/>
+                                <ellipse cx="60" cy="50" rx="32" ry="16" fill="#ffcc00" fill-opacity="0.18"/>
+                                <ellipse cx="260" cy="170" rx="28" ry="12" fill="#ff018f" fill-opacity="0.13"/>
+                                <rect x="24" y="36" width="60" height="16" rx="8" fill="#fff" fill-opacity="0.18"/>
+                                <text x="40" y="60" font-size="28" font-family="'Segoe UI',sans-serif" fill="#fff" fill-opacity="0.9" font-weight="bold">WICK</text>
+                            </svg>
+                            <!-- Back of the card: All info -->
+                            <svg class="card-face back" viewBox="0 0 320 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <defs>
+                                    <linearGradient id="cardBackBg" x1="0" y1="0" x2="320" y2="200" gradientUnits="userSpaceOnUse">
+                                        <stop offset="0%" stop-color="#2a0c62"/>
+                                        <stop offset="60%" stop-color="#ff018f"/>
+                                        <stop offset="100%" stop-color="#ffcc00"/>
+                                    </linearGradient>
+                                </defs>
+                                <rect x="0" y="0" width="320" height="200" rx="24" fill="url(#cardBackBg)"/>
+                                <rect x="0" y="30" width="320" height="28" rx="8" fill="#11012e" fill-opacity="0.7"/>
+                                <rect x="24" y="80" width="272" height="32" rx="8" fill="#fff" fill-opacity="0.13"/>
+                                <text x="40" y="105" font-size="22" font-family="'Segoe UI',sans-serif" fill="#fff" font-weight="bold">1234 5678 9012 3456</text>
+                                <text x="40" y="140" font-size="14" font-family="'Segoe UI',sans-serif" fill="#fff" fill-opacity="0.8">12/29</text>
+                                <text x="120" y="140" font-size="14" font-family="'Segoe UI',sans-serif" fill="#fff" fill-opacity="0.8">CARDHOLDER</text>
+                                <circle cx="260" cy="160" r="18" fill="#ffcc00" fill-opacity="0.7"/>
+                                <circle cx="285" cy="160" r="18" fill="#ff018f" fill-opacity="0.7"/>
+                                <text x="40" y="180" font-size="14" font-family="'Segoe UI',sans-serif" fill="#fff" fill-opacity="0.7">DEBIT</text>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            <section class="features">
+                <div class="feature-card">
+                    <i class="fas fa-bolt"></i>
+                    <h3>Lightning Fast</h3>
+                    <p>Instant transfers and real-time updates</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-shield-alt"></i>
+                    <h3>Bank-Grade Security</h3>
+                    <p>Your money is protected 24/7</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-mobile-alt"></i>
+                    <h3>Mobile First</h3>
+                    <p>Bank anywhere, anytime</p>
+                </div>
+            </section>
+        </div>
     </main>
-
-    <a href="#contact" class="floating-btn">
-        <i class="fas fa-envelope"></i>
-    </a>
-    
-    <footer>
-        <p>&copy; 2025 Your Website. All rights reserved.</p>
-        <div class="social-links">
-            <a href="#"><i class="fab fa-facebook"></i></a>
-            <a href="#"><i class="fab fa-twitter"></i></a>
-            <a href="#"><i class="fab fa-linkedin"></i></a>
-            <a href="#"><i class="fab fa-instagram"></i></a>
+    <footer style="background: var(--dark); padding: 3rem 0; margin-top: 4rem; border-top: 2px solid var(--purple);">
+        <div class="container" style="text-align: center; color: var(--pink);">
+            <p>© 2025 Wick Bank. All rights reserved.</p>
         </div>
     </footer>
 </body>
