@@ -9,5 +9,4 @@ import java.util.UUID;
 @Repository
 public interface UserRepository extends CassandraRepository<User, UUID> {
     // Basic CRUD operations are automatically implemented
-    // You can add custom query methods here if needed
 } 
