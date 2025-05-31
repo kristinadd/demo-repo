@@ -9,8 +9,17 @@ import jakarta.annotation.PostConstruct;
 @Configuration
 public class CassandraConfig extends AbstractCassandraConfiguration {
 
-    @Value("${spring.cassandra.keyspace-name}")
+    @Value("${spring.data.cassandra.keyspace-name}")
     private String keyspaceName;
+
+    @Value("${spring.data.cassandra.contact-points}")
+    private String contactPoints;
+
+    @Value("${spring.data.cassandra.local-datacenter}")
+    private String localDatacenter;
+
+    @Value("${spring.data.cassandra.port}")
+    private int port;
 
     @Override
     protected String getKeyspaceName() {
@@ -31,6 +40,18 @@ public class CassandraConfig extends AbstractCassandraConfiguration {
     public void printCassandraHost() {
         System.out.println("SPRING_PROFILES_ACTIVE: " + System.getenv("SPRING_PROFILES_ACTIVE"));
         System.out.println("CASSANDRA_HOST: " + System.getenv("CASSANDRA_HOST"));
-        System.out.println("spring.cassandra.contact-points: " + System.getProperty("spring.cassandra.contact-points"));
+        System.out.println("spring.data.cassandra.contact-points: " + contactPoints);
+        System.out.println("Keyspace Name: " + keyspaceName);
+        System.out.println("Local Datacenter: " + localDatacenter);
+    }
+
+    @Override
+    protected String getContactPoints() {
+        return contactPoints;
+    }
+
+    @Override
+    protected int getPort() {
+        return port;
     }
 }
