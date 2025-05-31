@@ -14,7 +14,7 @@ public class CassandraConfig extends AbstractCassandraConfiguration {
 
     @Override
     protected String getKeyspaceName() {
-        return "wick";
+        return "wick_prod";
     }
 
     @Override
