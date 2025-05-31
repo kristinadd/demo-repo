@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  cassandra:
+    image: cassandra:latest
+    container_name: cassandra-db
+    ports:
+      - "9042:9042"
+    volumes:
+      - cassandra-data:/var/lib/cassandra
+    environment:
+      - CASSANDRA_CLUSTER_NAME=WickBank
+      - CASSANDRA_DC=datacenter1
+    restart: unless-stopped
+
+volumes:
+  cassandra-data:
+    name: cassandra-data
