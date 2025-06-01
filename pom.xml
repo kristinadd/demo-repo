@@ -49,6 +49,26 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-data-cassandra</artifactId>
 		</dependency>
+		<dependency>
+			<groupId>software.aws.mcs</groupId>
+			<artifactId>aws-sigv4-auth-cassandra-java-driver-plugin</artifactId>
+			<version>4.0.2</version>
+			<exclusions>
+				<exclusion>
+					<groupId>com.datastax.oss</groupId>
+					<artifactId>java-driver-dse</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>com.datastax.oss</groupId>
+					<artifactId>java-driver-dse-graph</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>com.typesafe</groupId>
+			<artifactId>config</artifactId>
+			<version>1.4.2</version>
+		</dependency>
 	</dependencies>
 
 	<build>
