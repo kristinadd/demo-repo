@@ -68,7 +68,7 @@ public class CassandraConfigProd extends AbstractCassandraConfiguration {
                 java.security.KeyStore ks = java.security.KeyStore.getInstance(java.security.KeyStore.getDefaultType());
                 ks.load(null, null);
                 java.security.cert.CertificateFactory cf = java.security.cert.CertificateFactory.getInstance("X.509");
-                try (java.io.InputStream caInput = getClass().getClassLoader().getResourceAsStream("AmazonRootCA1.pem")) {
+                try (java.io.InputStream caInput = new java.io.FileInputStream("/var/app/current/src/main/resources/AmazonRootCA1.pem")) {
                     java.security.cert.Certificate ca = cf.generateCertificate(caInput);
                     ks.setCertificateEntry("ca", ca);
                 }
