@@ -21,7 +21,7 @@ public class CassandraConfigProd extends AbstractCassandraConfiguration {
     private static final Logger logger = LoggerFactory.getLogger(CassandraConfigProd.class);
     private static final String CERT_PATH = "/var/app/current/src/main/resources/AmazonRootCA1.pem";
     private static final String CERT_READY_FLAG = "/var/app/current/src/main/resources/.certificate_ready";
-    private static final int MAX_RETRIES = 10;
+    private static final int MAX_RETRIES = 20;
     private static final int RETRY_DELAY_MS = 5000;
 
     @Value("${spring.data.cassandra.keyspace-name}")
@@ -71,6 +71,7 @@ public class CassandraConfigProd extends AbstractCassandraConfiguration {
     }
 
     private void waitForCertificate() {
+        logger.info("Starting to wait for certificate at path: {}", CERT_PATH);
         int retries = 0;
         while (retries < MAX_RETRIES) {
             File certFile = new File(CERT_PATH);
@@ -78,7 +79,18 @@ public class CassandraConfigProd extends AbstractCassandraConfiguration {
             
             if (certFile.exists() && certFile.length() > 0 && readyFlag.exists()) {
                 logger.info("Certificate found after {} retries", retries);
+                logger.info("Certificate file size: {} bytes", certFile.length());
                 return;
+            }
+            
+            if (!certFile.exists()) {
+                logger.warn("Certificate file does not exist at path: {}", CERT_PATH);
+            } else if (certFile.length() == 0) {
+                logger.warn("Certificate file exists but is empty");
+            }
+            
+            if (!readyFlag.exists()) {
+                logger.warn("Certificate ready flag does not exist at path: {}", CERT_READY_FLAG);
             }
             
             logger.info("Certificate not found or not ready, retrying in {}ms... (attempt {}/{})", 
@@ -92,7 +104,7 @@ public class CassandraConfigProd extends AbstractCassandraConfiguration {
             }
             retries++;
         }
-        throw new RuntimeException("Failed to find certificate after " + MAX_RETRIES + " retries");
+        throw new RuntimeException("Failed to find certificate after " + MAX_RETRIES + " retries. Please check the certificate download script logs.");
     }
 
     @Override
@@ -101,6 +113,7 @@ public class CassandraConfigProd extends AbstractCassandraConfiguration {
             try {
                 waitForCertificate();
                 
+                logger.info("Configuring SSL context with certificate from: {}", CERT_PATH);
                 SSLContext sslContext = SSLContext.getInstance("TLS");
                 java.security.KeyStore ks = java.security.KeyStore.getInstance(java.security.KeyStore.getDefaultType());
                 ks.load(null, null);
@@ -109,12 +122,14 @@ public class CassandraConfigProd extends AbstractCassandraConfiguration {
                 try (java.io.InputStream caInput = new java.io.FileInputStream(CERT_PATH)) {
                     java.security.cert.Certificate ca = cf.generateCertificate(caInput);
                     ks.setCertificateEntry("ca", ca);
+                    logger.info("Successfully loaded certificate into keystore");
                 }
                 
                 javax.net.ssl.TrustManagerFactory tmf = javax.net.ssl.TrustManagerFactory.getInstance(
                     javax.net.ssl.TrustManagerFactory.getDefaultAlgorithm());
                 tmf.init(ks);
                 sslContext.init(null, tmf.getTrustManagers(), new java.security.SecureRandom());
+                logger.info("Successfully initialized SSL context");
                 
                 return sessionBuilder
                     .withAuthProvider(new SigV4AuthProvider("eu-north-1"))
