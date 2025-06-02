@@ -11,10 +11,18 @@ import javax.net.ssl.SSLContext;
 import org.springframework.data.cassandra.config.SessionBuilderConfigurer;
 import java.io.File;
 import java.util.concurrent.TimeUnit;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Configuration
 @Profile("prod")
 public class CassandraConfigProd extends AbstractCassandraConfiguration {
+
+    private static final Logger logger = LoggerFactory.getLogger(CassandraConfigProd.class);
+    private static final String CERT_PATH = "/var/app/current/src/main/resources/AmazonRootCA1.pem";
+    private static final String CERT_READY_FLAG = "/var/app/current/src/main/resources/.certificate_ready";
+    private static final int MAX_RETRIES = 10;
+    private static final int RETRY_DELAY_MS = 5000;
 
     @Value("${spring.data.cassandra.keyspace-name}")
     private String keyspaceName;
@@ -27,10 +35,6 @@ public class CassandraConfigProd extends AbstractCassandraConfiguration {
 
     @Value("${spring.data.cassandra.port}")
     private int port;
-
-    private static final String CERT_PATH = "/var/app/current/src/main/resources/AmazonRootCA1.pem";
-    private static final int MAX_RETRIES = 5;
-    private static final int RETRY_DELAY_MS = 2000;
 
     @Override
     protected String getKeyspaceName() {
@@ -49,11 +53,11 @@ public class CassandraConfigProd extends AbstractCassandraConfiguration {
 
     @PostConstruct
     public void printCassandraHost() {
-        System.out.println("SPRING_PROFILES_ACTIVE: " + System.getenv("SPRING_PROFILES_ACTIVE"));
-        System.out.println("CASSANDRA_HOST: " + System.getenv("CASSANDRA_HOST"));
-        System.out.println("spring.data.cassandra.contact-points: " + contactPoints);
-        System.out.println("Keyspace Name: " + keyspaceName);
-        System.out.println("Local Datacenter: " + localDatacenter);
+        logger.info("SPRING_PROFILES_ACTIVE: {}", System.getenv("SPRING_PROFILES_ACTIVE"));
+        logger.info("CASSANDRA_HOST: {}", System.getenv("CASSANDRA_HOST"));
+        logger.info("spring.data.cassandra.contact-points: {}", contactPoints);
+        logger.info("Keyspace Name: {}", keyspaceName);
+        logger.info("Local Datacenter: {}", localDatacenter);
     }
 
     @Override
@@ -70,11 +74,16 @@ public class CassandraConfigProd extends AbstractCassandraConfiguration {
         int retries = 0;
         while (retries < MAX_RETRIES) {
             File certFile = new File(CERT_PATH);
-            if (certFile.exists() && certFile.length() > 0) {
-                System.out.println("Certificate found after " + retries + " retries");
+            File readyFlag = new File(CERT_READY_FLAG);
+            
+            if (certFile.exists() && certFile.length() > 0 && readyFlag.exists()) {
+                logger.info("Certificate found after {} retries", retries);
                 return;
             }
-            System.out.println("Certificate not found, retrying in " + RETRY_DELAY_MS + "ms...");
+            
+            logger.info("Certificate not found or not ready, retrying in {}ms... (attempt {}/{})", 
+                RETRY_DELAY_MS, retries + 1, MAX_RETRIES);
+            
             try {
                 TimeUnit.MILLISECONDS.sleep(RETRY_DELAY_MS);
             } catch (InterruptedException e) {
@@ -96,17 +105,22 @@ public class CassandraConfigProd extends AbstractCassandraConfiguration {
                 java.security.KeyStore ks = java.security.KeyStore.getInstance(java.security.KeyStore.getDefaultType());
                 ks.load(null, null);
                 java.security.cert.CertificateFactory cf = java.security.cert.CertificateFactory.getInstance("X.509");
+                
                 try (java.io.InputStream caInput = new java.io.FileInputStream(CERT_PATH)) {
                     java.security.cert.Certificate ca = cf.generateCertificate(caInput);
                     ks.setCertificateEntry("ca", ca);
                 }
-                javax.net.ssl.TrustManagerFactory tmf = javax.net.ssl.TrustManagerFactory.getInstance(javax.net.ssl.TrustManagerFactory.getDefaultAlgorithm());
+                
+                javax.net.ssl.TrustManagerFactory tmf = javax.net.ssl.TrustManagerFactory.getInstance(
+                    javax.net.ssl.TrustManagerFactory.getDefaultAlgorithm());
                 tmf.init(ks);
                 sslContext.init(null, tmf.getTrustManagers(), new java.security.SecureRandom());
+                
                 return sessionBuilder
                     .withAuthProvider(new SigV4AuthProvider("eu-north-1"))
                     .withSslContext(sslContext);
             } catch (Exception e) {
+                logger.error("Failed to configure Cassandra session with SigV4", e);
                 throw new RuntimeException("Failed to configure Cassandra session with SigV4", e);
             }
         };
