@@ -9,6 +9,8 @@ import jakarta.annotation.PostConstruct;
 import software.aws.mcs.auth.SigV4AuthProvider;
 import javax.net.ssl.SSLContext;
 import org.springframework.data.cassandra.config.SessionBuilderConfigurer;
+import java.io.File;
+import java.util.concurrent.TimeUnit;
 
 @Configuration
 @Profile("prod")
@@ -25,6 +27,10 @@ public class CassandraConfigProd extends AbstractCassandraConfiguration {
 
     @Value("${spring.data.cassandra.port}")
     private int port;
+
+    private static final String CERT_PATH = "/var/app/current/src/main/resources/AmazonRootCA1.pem";
+    private static final int MAX_RETRIES = 5;
+    private static final int RETRY_DELAY_MS = 2000;
 
     @Override
     protected String getKeyspaceName() {
@@ -60,15 +66,37 @@ public class CassandraConfigProd extends AbstractCassandraConfiguration {
         return port;
     }
 
+    private void waitForCertificate() {
+        int retries = 0;
+        while (retries < MAX_RETRIES) {
+            File certFile = new File(CERT_PATH);
+            if (certFile.exists() && certFile.length() > 0) {
+                System.out.println("Certificate found after " + retries + " retries");
+                return;
+            }
+            System.out.println("Certificate not found, retrying in " + RETRY_DELAY_MS + "ms...");
+            try {
+                TimeUnit.MILLISECONDS.sleep(RETRY_DELAY_MS);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                throw new RuntimeException("Interrupted while waiting for certificate", e);
+            }
+            retries++;
+        }
+        throw new RuntimeException("Failed to find certificate after " + MAX_RETRIES + " retries");
+    }
+
     @Override
     protected SessionBuilderConfigurer getSessionBuilderConfigurer() {
         return sessionBuilder -> {
             try {
+                waitForCertificate();
+                
                 SSLContext sslContext = SSLContext.getInstance("TLS");
                 java.security.KeyStore ks = java.security.KeyStore.getInstance(java.security.KeyStore.getDefaultType());
                 ks.load(null, null);
                 java.security.cert.CertificateFactory cf = java.security.cert.CertificateFactory.getInstance("X.509");
-                try (java.io.InputStream caInput = new java.io.FileInputStream("/var/app/current/src/main/resources/AmazonRootCA1.pem")) {
+                try (java.io.InputStream caInput = new java.io.FileInputStream(CERT_PATH)) {
                     java.security.cert.Certificate ca = cf.generateCertificate(caInput);
                     ks.setCertificateEntry("ca", ca);
                 }

@@ -31,3 +31,7 @@ build/
 
 ### VS Code ###
 .vscode/
+
+# SSL Certificate
+src/main/resources/AmazonRootCA1.pem
+**/AmazonRootCA1.pem
