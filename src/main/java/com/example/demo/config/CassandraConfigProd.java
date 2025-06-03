@@ -41,9 +41,6 @@ public class CassandraConfigProd {
         CertificateFactory certFactory = CertificateFactory.getInstance("X.509");
         X509Certificate amazonRootCA;
         try (InputStream pemStream = new FileInputStream("/var/app/current/src/main/resources/AmazonRootCA1.pem")) {
-            if (pemStream == null) {
-                throw new IllegalStateException("Could not find AmazonRootCA1.pem at /var/app/current/src/main/resources/");
-            }
             amazonRootCA = (X509Certificate) certFactory.generateCertificate(pemStream);
         }
 
