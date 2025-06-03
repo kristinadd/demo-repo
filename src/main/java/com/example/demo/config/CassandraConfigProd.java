@@ -19,8 +19,8 @@ import org.slf4j.LoggerFactory;
 public class CassandraConfigProd extends AbstractCassandraConfiguration {
 
     private static final Logger logger = LoggerFactory.getLogger(CassandraConfigProd.class);
-    private static final String CERT_PATH = "/var/app/staging/src/main/resources/AmazonRootCA1.pem";
-    private static final String CERT_READY_FLAG = "/var/app/staging/src/main/resources/.certificate_ready";
+    private static final String CERT_PATH = "/var/app/current/src/main/resources/AmazonRootCA1.pem";
+    private static final String CERT_READY_FLAG = "/var/app/current/src/main/resources/.certificate_ready";
     private static final int MAX_RETRIES = 5;
     private static final int RETRY_DELAY_MS = 5000;
 
