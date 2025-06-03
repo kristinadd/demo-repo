@@ -7,6 +7,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
+import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
+import software.amazon.awssdk.regions.Region;
+import software.aws.mcs.auth.SigV4AuthProvider;
 
 import javax.net.ssl.TrustManagerFactory;
 import java.io.FileInputStream;
@@ -28,6 +31,9 @@ public class CassandraConfigProd {
 
     @Value("${spring.data.cassandra.local-datacenter}")
     private String datacenter;
+
+    @Value("${aws.region}")
+    private String awsRegion;
 
     @Bean
     public CqlSession cqlSession() throws Exception {
@@ -54,10 +60,14 @@ public class CassandraConfigProd {
                 .trustManager(tmf)
                 .build();
 
-        // 4. Build the CqlSession with TLS using NettySslEngineFactory
+        // 4. Create SigV4AuthProvider with AWS credentials
+        SigV4AuthProvider sigV4AuthProvider = new SigV4AuthProvider(awsRegion);
+
+        // 5. Build the CqlSession with TLS and SigV4 authentication
         return CqlSession.builder()
                 .addContactPoint(new InetSocketAddress(contactPoints, port))
                 .withLocalDatacenter(datacenter)
+                .withAuthProvider(sigV4AuthProvider)
                 .withSslEngineFactory(new NettySslEngineFactory(nettySslContext))
                 .build();
     }
