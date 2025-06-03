@@ -9,6 +9,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 
 import javax.net.ssl.TrustManagerFactory;
+import java.io.FileInputStream;
 import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.security.KeyStore;
@@ -30,12 +31,12 @@ public class CassandraConfigProd {
 
     @Bean
     public CqlSession cqlSession() throws Exception {
-        // 1. Load AmazonRootCA1.pem from classpath
+        // 1. Load AmazonRootCA1.pem from filesystem
         CertificateFactory certFactory = CertificateFactory.getInstance("X.509");
         X509Certificate amazonRootCA;
-        try (InputStream pemStream = getClass().getClassLoader().getResourceAsStream("AmazonRootCA1.pem")) {
+        try (InputStream pemStream = new FileInputStream("/var/app/current/src/main/resources/AmazonRootCA1.pem")) {
             if (pemStream == null) {
-                throw new IllegalStateException("Could not find AmazonRootCA1.pem on classpath");
+                throw new IllegalStateException("Could not find AmazonRootCA1.pem at /var/app/current/src/main/resources/");
             }
             amazonRootCA = (X509Certificate) certFactory.generateCertificate(pemStream);
         }
